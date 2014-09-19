@@ -1,0 +1,45 @@
+module registers_block (reg1val, reg2val,Wrdata, ir1, ir2,write_en, dr,clock, reset,reg6);
+
+ output reg [15:0] reg1val;        // Reg Output 1
+ output reg [15:0] reg2val;        // Reg Output 2
+ output reg [15:0] reg6;
+ input [15:0] Wrdata;
+ input write_en;
+ input [2:0] ir1;        // Source Register1 Select
+ input [2:0] ir2;        // Source Register2 Select
+ input [2:0] dr;         // Destination Register Select
+ 
+ input clock, reset;
+ 
+ reg [15:0] RegFile [7:0]; 			// Defining eight general purpose Registers
+ 
+  always@ (negedge clock)        
+begin
+if(reset)
+begin
+ RegFile[0]=16'd0;
+ RegFile[1]=16'd1;
+ RegFile[2]=16'd2;
+ RegFile[3]=16'd3;
+ RegFile[4]=16'd4;
+ RegFile[5]=16'd5;
+ RegFile[6]=16'd6;
+ RegFile[7]=16'd7;
+ reg1val[15:0]=16'd0;
+ reg2val[15:0]=16'd0;
+ end
+ 
+ else if(write_en) 
+ begin
+ RegFile[dr[2:0]]=Wrdata;
+ end
+ 
+ reg1val=RegFile[ir1[2:0]];
+ reg2val=RegFile[ir2[2:0]];
+ reg6 = RegFile[6];
+
+
+end
+
+
+ endmodule

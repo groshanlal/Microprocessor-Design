@@ -1,0 +1,124 @@
+module memory1 (mdr,ir,ctrl,memRd,memWr,mdr_l, mdr_h,ir_wr,regH,regL,clock,I,PC,R6,AluOut, reset);
+output reg [15:0] mdr;
+output reg [15:0] ir;
+input reset;
+wire [15:0] addr;
+
+input ctrl,memRd,memWr,clock,ir_wr, mdr_l, mdr_h;
+input [1:0]I;
+input [15:0]AluOut;
+input [15:0]R6;
+input [15:0]PC;
+input [7:0]regH;
+input [7:0]regL;
+
+reg [7:0]memL[511:0];
+reg [7:0]memH[511:0];
+
+
+integer i;
+
+
+assign addr    = (I == 2'b00) ? PC:
+                 (I == 2'b01) ? R6:
+				     (I == 2'b10) ? AluOut: 16'd0;
+
+
+		
+
+
+always@ (negedge clock)
+begin //1
+		if(reset)
+		begin
+		for(i=0;i<512;i=i+1)
+		begin
+		memL[i]=8'h00;
+		memH[i]=8'h64;
+		end
+		end
+		
+		if(memWr)                    //For writing into memory
+		begin //3
+			if (ctrl==1)    
+			begin
+				memH[addr[9:1]]=regH;
+				memL[addr[9:1]]=regL;
+			end
+			
+			if (ctrl==0)  
+			begin
+				if(addr[0]==1)      //to H
+				begin
+					memH[addr[9:1]]=regL;
+				end 
+				
+				if (addr[0]==0)     //to L     
+				begin
+					memL[addr[9:1]]=regL;
+				end 
+		   end
+				
+			 
+		end
+			
+		if (memRd)                   //For reading from memory
+		begin
+		
+		if(ir_wr==1)
+		begin
+					ir[15:8]=memH[addr[9:1]];
+					ir[ 7:0]=memL[addr[9:1]];
+	   end
+		
+		if((mdr_l==1)&(mdr_h==1))
+						begin
+					mdr[15:8]=memH[addr[9:1]];
+					mdr[ 7:0]=memL[addr[9:1]];
+	  				 end
+		
+		if((mdr_l==1)&(mdr_h==0))
+		begin
+		if(addr[0]==0)           //from L
+			begin
+			mdr[ 7:0]=memL[addr[9:1]];
+			mdr[15:8]=8'd0;
+			end
+			
+		if(addr[0]==1)           //from H
+			begin
+			mdr[ 7:0]=memH[addr[9:1]];
+			mdr[15:8]=8'd0;
+			end
+		
+		end
+		
+		if((mdr_l==0)&(mdr_h==1))
+		begin
+		if(addr[0]==0)           //from L
+			begin
+			mdr[15:8]=memL[addr[9:1]];
+			mdr[ 7:0]=8'd0;
+			end
+			
+		if(addr[0]==1)           //from H
+			begin
+			mdr[15:8]=memH[addr[9:1]];
+			mdr[ 7:0]=8'd0;
+			end
+		
+		end
+		
+		
+		
+		
+			
+				
+		end	
+		
+		
+		
+		end
+		
+
+endmodule
